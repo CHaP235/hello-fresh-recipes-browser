@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tab {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .tab.active {
+            display: block;
+        }
+
+        .tab-buttons {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .recipe-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            background-color: #f5f5f5;
+        }
+
+        .selected {
+            background-color: #e0e0e0;
+        }
+
+        #ingredientsList,
+        #shoppingList {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .recipe-title {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .toggle-cook {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-buttons {
+            margin: 20px 0;
+        }
+
+        .ingredients-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ingredients-input input[type="number"] {
+            width: 100px;
+        }
+
+        .ingredients-input select {
+            width: 100px;
+            padding: 8px;
+        }
+
+        .ingredients-input input[type="text"] {
+            flex-grow: 1;
+        }
+
+        #ingredientInputs {
+            margin-bottom: 20px;
+        }
+
+        .ingredient-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .remove-ingredient {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .recipe-steps {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .recipe-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .recipe-steps li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Recipe Manager</h1>
+
+    <div class="tab-buttons">
+        <button onclick="showTab('add')">Add Recipe</button>
+        <button onclick="showTab('browse')">Browse Recipes</button>
+    </div>
+
+    <div id="addTab" class="tab active">
+        <h2>Add New Recipe</h2>
+
+        <div class="section">
+            <h3>Basic Information</h3>
+            <input type="text" id="recipeName" placeholder="Recipe Name" required>
+        </div>
+
+        <div class="section">
+            <h3>Ingredients</h3>
+            <p class="help-text">Add ingredients with their quantities and units.</p>
+            <div id="ingredientInputs"></div>
+            <button onclick="addIngredientInput()">Add Another Ingredient</button>
+        </div>
+
+        <div class="section">
+            <h3>Cooking Instructions</h3>
+            <p class="help-text">Enter each step on a new line, starting with a number (e.g., "1. Preheat oven...")</p>
+            <textarea id="instructions" rows="10" placeholder="Enter cooking instructions step by step..."></textarea>
+        </div>
+
+        <button onclick="addRecipe()">Save Recipe</button>
+    </div>
+
+    <div id="browseTab" class="tab">
+        <h2>Browse Recipes</h2>
+        <div id="recipeList"></div>
+        <div class="action-buttons">
+            <button onclick="showIngredients()" id="showIngredientsBtn" style="display: none;">Show Recipe
+                Details</button>
+            <button onclick="showShoppingList()">Show Shopping List</button>
+        </div>
+        <div id="ingredientsList"></div>
+        <div id="shoppingList"></div>
+    </div>
+
+    <script>
+        // Initialize recipes array in memory
+        let recipes = [];
+        let selectedRecipeIndex = -1;
+
+        function createIngredientInput(index) {
+            return `
+                <div class="ingredient-row" id="ingredient-${index}">
+                    <input type="number" min="0" step="0.1" placeholder="Amount" required>
+                    <select required>
+                        <option value="g">grams (g)</option>
+                        <option value="kg">kilograms (kg)</option>
+                        <option value="ml">milliliters (ml)</option>
+                        <option value="l">liters (l)</option>
+                        <option value="piece">piece</option>
+                    </select>
+                    <input type="text" placeholder="Ingredient name" required>
+                    <button class="remove-ingredient" onclick="removeIngredientInput(${index})">✕</button>
+                </div>
+            `;
+        }
+
+        function addIngredientInput() {
+            const container = document.getElementById('ingredientInputs');
+            const index = container.children.length;
+            container.insertAdjacentHTML('beforeend', createIngredientInput(index));
+        }
+
+        function removeIngredientInput(index) {
+            const element = document.getElementById(`ingredient-${index}`);
+            if (element) element.remove();
+        }
+
+        // Add first ingredient input on page load
+        window.onload = () => addIngredientInput();
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            if (tabName === 'browse') {
+                displayRecipes();
+            }
+        }
+
+        function formatInstructions(instructions) {
+            return instructions
+                .split('\n')
+                .map(step => step.trim())
+                .filter(step => step)
+                .map((step, index) => {
+                    // If step doesn't start with a number, add the step number
+                    if (!/^\d+\./.test(step)) {
+                        return `${index + 1}. ${step}`;
+                    }
+                    return step;
+                });
+        }
+
+        function addRecipe() {
+            const name = document.getElementById('recipeName').value.trim();
+            const instructions = document.getElementById('instructions').value.trim();
+            const ingredientRows = document.querySelectorAll('.ingredient-row');
+
+            if (!name || !instructions) {
+                alert('Please enter a recipe name and instructions');
+                return;
+            }
+
+            const ingredients = [];
+            for (let row of ingredientRows) {
+                const inputs = row.getElementsByTagName('input');
+                const select = row.getElementsByTagName('select')[0];
+
+                const amount = inputs[0].value;
+                const unit = select.value;
+                const name = inputs[1].value.trim();
+
+                if (!amount || !name) {
+                    alert('Please fill in all ingredient fields');
+                    return;
+                }
+
+                ingredients.push({
+                    amount: parseFloat(amount),
+                    unit: unit,
+                    name: name
+                });
+            }
+
+            const recipe = {
+                name: name,
+                ingredients: ingredients,
+                instructions: formatInstructions(instructions),
+                wantToCook: false
+            };
+
+            recipes.push(recipe);
+
+            // Clear form
+            document.getElementById('recipeName').value = '';
+            document.getElementById('instructions').value = '';
+            document.getElementById('ingredientInputs').innerHTML = '';
+            addIngredientInput();
+
+            alert('Recipe added successfully!');
+        }
+
+        function displayRecipes() {
+            const recipeList = document.getElementById('recipeList');
+            recipeList.innerHTML = '';
+
+            recipes.forEach((recipe, index) => {
+                const recipeCard = document.createElement('div');
+                recipeCard.className = 'recipe-card';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'recipe-title';
+                titleDiv.innerHTML = recipe.name;
+                titleDiv.onclick = () => selectRecipe(index);
+
+                const toggleDiv = document.createElement('div');
+                toggleDiv.className = 'toggle-cook';
+                toggleDiv.innerHTML = `
+                    <input type="checkbox" id="cook-${index}" 
+                           ${recipe.wantToCook ? 'checked' : ''}
+                           onchange="toggleWantToCook(${index})">
+                    <label for="cook-${index}">Want to cook</label>
+                `;
+
+                recipeCard.appendChild(titleDiv);
+                recipeCard.appendChild(toggleDiv);
+                recipeList.appendChild(recipeCard);
+            });
+        }
+
+        function selectRecipe(index) {
+            document.querySelectorAll('.recipe-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.recipe-card')[index].classList.add('selected');
+            document.getElementById('showIngredientsBtn').style.display = 'block';
+            document.getElementById('ingredientsList').style.display = 'none';
+            document.getElementById('shoppingList').style.display = 'none';
+            selectedRecipeIndex = index;
+        }
+
+        function toggleWantToCook(index) {
+            recipes[index].wantToCook = !recipes[index].wantToCook;
+            event.stopPropagation();
+        }
+
+        function showIngredients() {
+            const recipe = recipes[selectedRecipeIndex];
+            const ingredientsList = document.getElementById('ingredientsList');
+
+            ingredientsList.innerHTML = `
+                <h3>${recipe.name}</h3>
+                <div class="section">
+                    <h4>Ingredients</h4>
+                    <ul>
+                        ${recipe.ingredients.map(ing =>
+                `<li>${ing.amount} ${ing.unit} ${ing.name}</li>`
+            ).join('')}
+                    </ul>
+                </div>
+                <div class="recipe-steps">
+                    <h4>Instructions</h4>
+                    <ol>
+                        ${recipe.instructions.map(step =>
+                `<li>${step.replace(/^\d+\.\s*/, '')}</li>`
+            ).join('')}
+                    </ol>
+                </div>
+            `;
+            ingredientsList.style.display = 'block';
+            document.getElementById('shoppingList').style.display = 'none';
+        }
+
+        function normalizeUnit(amount, unit) {
+            switch (unit) {
+                case 'kg': return {amount: amount * 1000, unit: 'g'};
+                case 'l': return {amount: amount * 1000, unit: 'ml'};
+                default: return {amount, unit};
+            }
+        }
+
+        function formatUnit(amount, unit) {
+            if (unit === 'g' && amount >= 1000) {
+                return {amount: amount / 1000, unit: 'kg'};
+            }
+            if (unit === 'ml' && amount >= 1000) {
+                return {amount: amount / 1000, unit: 'l'};
+            }
+            return {amount, unit};
+        }
+
+        function showShoppingList() {
+            const selectedRecipes = recipes.filter(recipe => recipe.wantToCook);
+            const shoppingList = document.getElementById('shoppingList');
+
+            if (selectedRecipes.length === 0) {
+                shoppingList.innerHTML = '<p>No recipes marked as "want to cook". Please select some recipes first.</p>';
+                shoppingList.style.display = 'block';
+                return;
+            }
+
+            const combinedIngredients = {};
+
+            selectedRecipes.forEach(recipe => {
+                recipe.ingredients.forEach(ing => {
+                    const normalized = normalizeUnit(ing.amount, ing.unit);
+                    const key = `${ing.name}-${normalized.unit}`;
+
+                    if (!combinedIngredients[key]) {
+                        combinedIngredients[key] = {
+                            name: ing.name,
+                            amount: normalized.amount,
+                            unit: normalized.unit
+                        };
+                    } else {
+                        combinedIngredients[key].amount += normalized.amount;
+                    }
+                });
+            });
+
+            const formattedIngredients = Object.values(combinedIngredients).map(ing => {
+                const formatted = formatUnit(ing.amount, ing.unit);
+                return `<li>${formatted.amount.toFixed(2)} ${formatted.unit} ${ing.name}</li>`;
+            });
+
+            shoppingList.innerHTML = `
+                <h3>Shopping List (from ${selectedRecipes.length} recipes)</h3>
+                <ul>${formattedIngredients.join('')}</ul>
+            `;
+            shoppingList.style.display = 'block';
+            document.getElementById('ingredientsList').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
