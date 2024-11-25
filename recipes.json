@@ -1,49 +1,24 @@
 [
     {
-        "name": "Classic Spaghetti Bolognese 2",
+        "name": "A",
         "ingredients": [
-            {"amount": 500, "unit": "g", "name": "ground beef"},
-            {"amount": 400, "unit": "g", "name": "spaghetti"},
-            {"amount": 1, "unit": "piece", "name": "onion"},
-            {"amount": 2, "unit": "piece", "name": "garlic cloves"},
-            {"amount": 400, "unit": "g", "name": "canned tomatoes"},
-            {"amount": 30, "unit": "ml", "name": "olive oil"},
-            {"amount": 10, "unit": "g", "name": "dried oregano"}
+            {"amount": 1, "unit": "g", "name": "a"},
+            {"amount": 1, "unit": "g", "name": "b"}
         ],
         "instructions": [
-            "Chop onions and garlic finely",
-            "Heat olive oil in a large pan",
-            "Sauté onions and garlic until translucent",
-            "Add ground beef and cook until browned",
-            "Pour in canned tomatoes and oregano",
-            "Simmer sauce for 30 minutes",
-            "Cook spaghetti in salted water according to package instructions",
-            "Serve sauce over spaghetti"
-        ],
-        "wantToCook": false
+            "1. - ",
+            "2. - "
+        ]
     },
     {
-        "name": "Vegetable Stir Fry",
+        "name": "B",
         "ingredients": [
-            {"amount": 300, "unit": "g", "name": "mixed vegetables"},
-            {"amount": 200, "unit": "g", "name": "tofu"},
-            {"amount": 30, "unit": "ml", "name": "soy sauce"},
-            {"amount": 15, "unit": "ml", "name": "sesame oil"},
-            {"amount": 2, "unit": "piece", "name": "garlic cloves"},
-            {"amount": 15, "unit": "g", "name": "ginger"},
-            {"amount": 200, "unit": "g", "name": "rice"}
+            {"amount": 10, "unit": "g", "name": "a"},
+            {"amount": 10, "unit": "g", "name": "b"}
         ],
         "instructions": [
-            "Cut tofu and vegetables into bite-sized pieces",
-            "Mince garlic and grate ginger",
-            "Cook rice according to package instructions",
-            "Heat sesame oil in a wok or large pan",
-            "Stir fry garlic and ginger for 30 seconds",
-            "Add tofu and cook until golden",
-            "Add vegetables and stir fry for 3-4 minutes",
-            "Add soy sauce and toss",
-            "Serve over rice"
-        ],
-        "wantToCook": false
+            "1. - ",
+            "2. - "
+        ]
     }
 ]
