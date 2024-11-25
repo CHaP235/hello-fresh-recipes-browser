@@ -106,11 +106,11 @@
         }
 
         // Function to display recipes
-        function displayRecipes() {
+        async function displayRecipes() {
             const recipeList = document.getElementById('recipeList');
             recipeList.innerHTML = '';
 
-            recipes = loadRecipes();
+            recipes = await loadRecipes();
 
             console.log(recipes);
 
