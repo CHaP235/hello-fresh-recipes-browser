@@ -13,36 +13,6 @@
             padding: 20px;
         }
 
-        .tab {
-            display: none;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .tab.active {
-            display: block;
-        }
-
-        .tab-buttons {
-            margin-bottom: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
         .recipe-card {
             display: flex;
             justify-content: space-between;
@@ -86,55 +56,6 @@
             margin: 20px 0;
         }
 
-        .ingredients-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .ingredients-input input[type="number"] {
-            width: 100px;
-        }
-
-        .ingredients-input select {
-            width: 100px;
-            padding: 8px;
-        }
-
-        .ingredients-input input[type="text"] {
-            flex-grow: 1;
-        }
-
-        #ingredientInputs {
-            margin-bottom: 20px;
-        }
-
-        .ingredient-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .remove-ingredient {
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .help-text {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-        }
-
-        .section {
-            margin-bottom: 30px;
-        }
-
         .recipe-steps {
             margin-top: 20px;
             padding: 15px;
@@ -156,36 +77,7 @@
 <body>
     <h1>Recipe Manager</h1>
 
-    <div class="tab-buttons">
-        <button onclick="showTab('add')">Add Recipe</button>
-        <button onclick="showTab('browse')">Browse Recipes</button>
-    </div>
-
-    <div id="addTab" class="tab active">
-        <h2>Add New Recipe</h2>
-
-        <div class="section">
-            <h3>Basic Information</h3>
-            <input type="text" id="recipeName" placeholder="Recipe Name" required>
-        </div>
-
-        <div class="section">
-            <h3>Ingredients</h3>
-            <p class="help-text">Add ingredients with their quantities and units.</p>
-            <div id="ingredientInputs"></div>
-            <button onclick="addIngredientInput()">Add Another Ingredient</button>
-        </div>
-
-        <div class="section">
-            <h3>Cooking Instructions</h3>
-            <p class="help-text">Enter each step on a new line, starting with a number (e.g., "1. Preheat oven...")</p>
-            <textarea id="instructions" rows="10" placeholder="Enter cooking instructions step by step..."></textarea>
-        </div>
-
-        <button onclick="addRecipe()">Save Recipe</button>
-    </div>
-
-    <div id="browseTab" class="tab">
+    <div id="browseTab">
         <h2>Browse Recipes</h2>
         <div id="recipeList"></div>
         <div class="action-buttons">
@@ -198,116 +90,78 @@
     </div>
 
     <script>
-        // Initialize recipes array in memory
-        let recipes = [];
+        // Hardcoded recipes
+        let recipes = [
+            {
+                "name": "Classic Spaghetti Bolognese",
+                "ingredients": [
+                    {"amount": 500, "unit": "g", "name": "ground beef"},
+                    {"amount": 400, "unit": "g", "name": "spaghetti"},
+                    {"amount": 1, "unit": "piece", "name": "onion"},
+                    {"amount": 2, "unit": "piece", "name": "garlic cloves"},
+                    {"amount": 400, "unit": "g", "name": "canned tomatoes"},
+                    {"amount": 30, "unit": "ml", "name": "olive oil"},
+                    {"amount": 10, "unit": "g", "name": "dried oregano"}
+                ],
+                "instructions": [
+                    "Chop onions and garlic finely",
+                    "Heat olive oil in a large pan",
+                    "Sauté onions and garlic until translucent",
+                    "Add ground beef and cook until browned",
+                    "Pour in canned tomatoes and oregano",
+                    "Simmer sauce for 30 minutes",
+                    "Cook spaghetti in salted water according to package instructions",
+                    "Serve sauce over spaghetti"
+                ],
+                "wantToCook": false
+            },
+            {
+                "name": "Vegetable Stir Fry",
+                "ingredients": [
+                    {"amount": 300, "unit": "g", "name": "mixed vegetables"},
+                    {"amount": 200, "unit": "g", "name": "tofu"},
+                    {"amount": 30, "unit": "ml", "name": "soy sauce"},
+                    {"amount": 15, "unit": "ml", "name": "sesame oil"},
+                    {"amount": 2, "unit": "piece", "name": "garlic cloves"},
+                    {"amount": 15, "unit": "g", "name": "ginger"},
+                    {"amount": 200, "unit": "g", "name": "rice"}
+                ],
+                "instructions": [
+                    "Cut tofu and vegetables into bite-sized pieces",
+                    "Mince garlic and grate ginger",
+                    "Cook rice according to package instructions",
+                    "Heat sesame oil in a wok or large pan",
+                    "Stir fry garlic and ginger for 30 seconds",
+                    "Add tofu and cook until golden",
+                    "Add vegetables and stir fry for 3-4 minutes",
+                    "Add soy sauce and toss",
+                    "Serve over rice"
+                ],
+                "wantToCook": false
+            }
+        ];
+
         let selectedRecipeIndex = -1;
 
-        function createIngredientInput(index) {
-            return `
-                <div class="ingredient-row" id="ingredient-${index}">
-                    <input type="number" min="0" step="0.1" placeholder="Amount" required>
-                    <select required>
-                        <option value="g">grams (g)</option>
-                        <option value="kg">kilograms (kg)</option>
-                        <option value="ml">milliliters (ml)</option>
-                        <option value="l">liters (l)</option>
-                        <option value="piece">piece</option>
-                    </select>
-                    <input type="text" placeholder="Ingredient name" required>
-                    <button class="remove-ingredient" onclick="removeIngredientInput(${index})">✕</button>
-                </div>
-            `;
-        }
-
-        function addIngredientInput() {
-            const container = document.getElementById('ingredientInputs');
-            const index = container.children.length;
-            container.insertAdjacentHTML('beforeend', createIngredientInput(index));
-        }
-
-        function removeIngredientInput(index) {
-            const element = document.getElementById(`ingredient-${index}`);
-            if (element) element.remove();
-        }
-
-        // Add first ingredient input on page load
-        window.onload = () => addIngredientInput();
-
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabName + 'Tab').classList.add('active');
-
-            if (tabName === 'browse') {
-                displayRecipes();
-            }
-        }
-
-        function formatInstructions(instructions) {
-            return instructions
-                .split('\n')
-                .map(step => step.trim())
-                .filter(step => step)
-                .map((step, index) => {
-                    // If step doesn't start with a number, add the step number
-                    if (!/^\d+\./.test(step)) {
-                        return `${index + 1}. ${step}`;
-                    }
-                    return step;
-                });
-        }
-
-        function addRecipe() {
-            const name = document.getElementById('recipeName').value.trim();
-            const instructions = document.getElementById('instructions').value.trim();
-            const ingredientRows = document.querySelectorAll('.ingredient-row');
-
-            if (!name || !instructions) {
-                alert('Please enter a recipe name and instructions');
-                return;
-            }
-
-            const ingredients = [];
-            for (let row of ingredientRows) {
-                const inputs = row.getElementsByTagName('input');
-                const select = row.getElementsByTagName('select')[0];
-
-                const amount = inputs[0].value;
-                const unit = select.value;
-                const name = inputs[1].value.trim();
-
-                if (!amount || !name) {
-                    alert('Please fill in all ingredient fields');
-                    return;
+        async function loadRecipes() {
+            try {
+                const response = await fetch('recipes.json');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recipes');
                 }
-
-                ingredients.push({
-                    amount: parseFloat(amount),
-                    unit: unit,
-                    name: name
-                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading recipes:', error);
+                return [];
             }
-
-            const recipe = {
-                name: name,
-                ingredients: ingredients,
-                instructions: formatInstructions(instructions),
-                wantToCook: false
-            };
-
-            recipes.push(recipe);
-
-            // Clear form
-            document.getElementById('recipeName').value = '';
-            document.getElementById('instructions').value = '';
-            document.getElementById('ingredientInputs').innerHTML = '';
-            addIngredientInput();
-
-            alert('Recipe added successfully!');
         }
 
+        // Function to display recipes
         function displayRecipes() {
             const recipeList = document.getElementById('recipeList');
             recipeList.innerHTML = '';
+
+            loadRecipes();
 
             recipes.forEach((recipe, index) => {
                 const recipeCard = document.createElement('div');
@@ -332,6 +186,11 @@
                 recipeList.appendChild(recipeCard);
             });
         }
+
+        // Run displayRecipes on page load
+        window.onload = () => {
+            displayRecipes();
+        };
 
         function selectRecipe(index) {
             document.querySelectorAll('.recipe-card').forEach(card => card.classList.remove('selected'));
@@ -365,7 +224,7 @@
                     <h4>Instructions</h4>
                     <ol>
                         ${recipe.instructions.map(step =>
-                `<li>${step.replace(/^\d+\.\s*/, '')}</li>`
+                `<li>${step}</li>`
             ).join('')}
                     </ol>
                 </div>
